@@ -3,7 +3,7 @@
 ; All rights reserved.
 
 ; AX86 — Assembly x86
-; Build (Linux):   tas32 ax86.s ax86   && chmod +x ax86
+; Build (Linux):   ./ax86 ax86.s ax86   && chmod +x ax86
 
 	format	ELF executable 3
 	entry	as_start

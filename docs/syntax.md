@@ -252,7 +252,7 @@ REMAIN  = 100 mod 7
 
 ### Relational operators
 
-`=` `<>` `<` `>` `<=` `>=` are valid **only** inside preprocessor conditions (`if`, `else if`, `assert`, `while`, `match`). Using them in expressions or data definitions is an error.
+`=` `<>` `<` `>` `<=` `>=` are valid **only** inside preprocessor conditions (`if`, `else if`, `assert`, `while`). Using them in expressions or data definitions is an error.
 
 ```asm
 if STACK_SIZE >= 4096
@@ -569,6 +569,29 @@ Aborts assembly with an error when the condition is false.
 assert HEADER_SIZE = 16
 assert $ - section_start < 512
 ```
+
+### while
+
+Repeats a block as long as the condition is true. The condition is evaluated at assembly time using numeric constants.
+
+```asm
+I = 1
+while I <= 4
+    u16 I
+    I = I + 1
+end while
+; emits: 1, 2, 3, 4 as words
+```
+
+```asm
+N = 8
+while N > 0
+    u8 0x90     ; emit N nops
+    N = N - 1
+end while
+```
+
+Unlike `repeat`, `while` supports arbitrary constant expressions as the termination condition. The block is skipped entirely if the condition is false on the first evaluation.
 
 ### restore
 

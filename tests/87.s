@@ -4,4 +4,4 @@
 format elf executable 3
 
 	inc	eax
-	trap	0x0a
+	trap	0x80

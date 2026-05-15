@@ -322,7 +322,7 @@ as_collect_path:
 	test	al,al
 	if_not_zero	as_copy_path_to_low_memory
 	mov	[as_path_pointer],edi
-	retn
+	ret
 
 include 'core/linux32.s'
 

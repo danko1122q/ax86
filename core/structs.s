@@ -2404,6 +2404,12 @@ as_instructions_8:
  u16 as_sse_ss_instruction-as_instruction_handler
  u8 'cvtss2si',2Dh
  u16 as_cvtss2si_instruction-as_instruction_handler
+ u8 'extend16',0x98
+ u16 as_simple_instruction_16bit-as_instruction_handler
+ u8 'extend32',0x98
+ u16 as_simple_instruction_32bit-as_instruction_handler
+ u8 'extend64',0x99
+ u16 as_simple_instruction_32bit-as_instruction_handler
  u8 'fcmovnbe',0D0h
  u16 as_fcomi_instruction-as_instruction_handler
  u8 'fnstenvd',6
@@ -2899,6 +2905,8 @@ as_instructions_9:
  u16 as_cvtsd2si_instruction-as_instruction_handler
  u8 'cvttss2si',2Ch
  u16 as_cvtss2si_instruction-as_instruction_handler
+ u8 'extend128',0x99
+ u16 as_simple_instruction_64bit-as_instruction_handler
  u8 'extractps',17h
  u16 as_extractps_instruction-as_instruction_handler
  u8 'fxrstor64',1
@@ -3362,6 +3370,8 @@ as_instructions_10:
  u16 as_cmp_ss_instruction-as_instruction_handler
  u8 'cmpxchg16b',16
  u16 as_cmpxchgx_instruction-as_instruction_handler
+ u8 'extend_rax',98h
+ u16 as_simple_instruction_64bit-as_instruction_handler
  u8 'if_greater',0x7F
  u16 as_conditional_jump-as_instruction_handler
  u8 'load_fence',0E8h
@@ -4252,10 +4262,6 @@ as_instructions_16:
  u16 as_bs_instruction-as_instruction_handler
  u8 'move_if_overflow',40h
  u16 as_bs_instruction-as_instruction_handler
- u8 'sign_extend_byte',0x98
- u16 as_simple_instruction_16bit-as_instruction_handler
- u8 'sign_extend_word',0x98
- u16 as_simple_instruction_32bit-as_instruction_handler
  u8 'vaeskeygenassist',0DFh
  u16 as_avx_single_source_128bit_instruction_3a_imm8_noevex-as_instruction_handler
  u8 'write_port_bytes',6Eh
@@ -4269,10 +4275,6 @@ as_instructions_17:
  u16 as_bs_instruction-as_instruction_handler
  u8 'move_if_not_equal',45h
  u16 as_bs_instruction-as_instruction_handler
- u8 'sign_extend_dword',0x99
- u16 as_simple_instruction_32bit-as_instruction_handler
- u8 'sign_extend_qword',0x99
- u16 as_simple_instruction_64bit-as_instruction_handler
  u8 'store_ah_to_flags',0x9E
  u16 as_simple_instruction-as_instruction_handler
  u8 'vgf2p8affineinvqb',0CFh

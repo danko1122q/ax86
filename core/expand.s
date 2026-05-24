@@ -28,13 +28,11 @@ as_preprocessor:
         mov     [as_include_paths],edi
         mov     esi,as_include_var
         call    as_get_environment_variable
-        ; if env var was found, append ';' separator before -i paths
         cmp     edi,[as_include_paths]
         if_equal        as_no_env_include
         mov     as_u8 [edi],';'
         inc     edi
       as_no_env_include:
-        ; append paths collected from -i flags (already ';'-separated, ends with null)
         mov     esi,as_include_extra
       as_append_include_extra:
         lodsb
@@ -920,7 +918,6 @@ as_define_symbolic_constant:
         mov     [edx+12],ecx
         jmp     as_line_preprocessed
 
-; macro/struc/rept/irp/irps/irpv/match/postpone/purge/restruc removed
 as_restore_equ_constant:
         mov     ch,10b
       as_restore_preprocessor_symbol:

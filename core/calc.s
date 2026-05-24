@@ -544,7 +544,7 @@ as_calculate_expression:
         call    as_get_byte_scale
         signed_multiply as_u8 [esi+10]
         mov     dl,ah
-        sign_extend_byte
+        extend16
         cmp     ah,dl
         if_not_equal    as_value_out_of_range
         mov     [esi+10],al
@@ -557,7 +557,7 @@ as_calculate_expression:
         call    as_get_byte_scale
         signed_multiply as_u8 [esi+11]
         mov     dl,ah
-        sign_extend_byte
+        extend16
         cmp     ah,dl
         if_not_equal    as_value_out_of_range
         mov     [esi+11],al
@@ -573,9 +573,9 @@ as_calculate_expression:
         jmp     as_calculation_loop
       as_get_byte_scale:
         mov     al,[edi]
-        sign_extend_byte
-        sign_extend_word
-        sign_extend_dword
+        extend16
+        extend32
+        extend64
         cmp     edx,[edi+4]
         if_not_equal    as_value_out_of_range
         cmp     eax,[edi]
@@ -594,7 +594,7 @@ as_calculate_expression:
         or      al,al
         if_zero as_value_out_of_range
         mov     al,[esi+10]
-        sign_extend_byte
+        extend16
         signed_divide   as_u8 [edi]
         or      ah,ah
         if_not_zero     as_invalid_use_of_symbol
@@ -606,7 +606,7 @@ as_calculate_expression:
         or      al,al
         if_zero as_value_out_of_range
         mov     al,[esi+11]
-        sign_extend_byte
+        extend16
         signed_divide   as_u8 [edi]
         or      ah,ah
         if_not_zero     as_invalid_use_of_symbol
@@ -1121,7 +1121,6 @@ as_calculate_expression:
         or      eax,eax
         if_zero as_value_out_of_range
       as_fp_qword_store:
-        ; pack float32/64 sign bit into high word (inline: pack_sign32 edx, [esi+11])
         mov     bl,[esi+11]
         shl     ebx,31
         or      edx,ebx
@@ -1169,7 +1168,6 @@ as_calculate_expression:
         or      ax,bx
         if_zero as_value_out_of_range
       as_fp_word_store:
-        ; pack float16 sign bit into result word (inline: pack_sign16 ax, [esi+11])
         mov     bl,[esi+11]
         shl     bx,15
         or      ax,bx
@@ -1218,7 +1216,6 @@ as_calculate_expression:
         or      eax,ebx
         if_zero as_value_out_of_range
       as_fp_dword_store:
-        ; pack float32 sign bit into result (inline: pack_sign32 eax, [esi+11])
         mov     bl,[esi+11]
         shl     ebx,31
         or      eax,ebx
@@ -1320,7 +1317,7 @@ as_get_dword_value:
         if_not_equal    as_check_dword_value
         mov     [as_value_type],2
         mov     eax,[edi]
-        sign_extend_dword
+        extend64
         cmp     edx,[edi+4]
         if_not_equal    as_range_exceeded
         mov     ecx,edx
@@ -1518,7 +1515,7 @@ as_get_address_value:
         mov     [as_value_type],2
       as_address_sizes_mixed_type_ok:
         mov     eax,[edi]
-        sign_extend_dword
+        extend64
         cmp     edx,[edi+4]
         if_equal        as_address_size_ok
         cmp     [as_error_line],0
@@ -1593,7 +1590,7 @@ as_get_address_value:
         ret
       as_check_rip_relative_address:
         mov     eax,[edi]
-        sign_extend_dword
+        extend64
         cmp     edx,[edi+4]
         if_not_equal    as_range_exceeded
         cmp     dl,[edi+13]
@@ -1633,11 +1630,11 @@ as_get_address_value:
         cmp     [as_value_type],0
         if_not_equal    as_check_index_scale
         mov     al,[edi]
-        sign_extend_byte
-        sign_extend_word
+        extend16
+        extend32
         cmp     eax,[edi]
         if_not_equal    as_check_index_scale
-        sign_extend_dword
+        extend64
         cmp     edx,[edi+4]
         if_not_equal    as_check_immediate_address
       as_special_index_scale:

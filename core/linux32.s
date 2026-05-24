@@ -2,9 +2,6 @@
 ; Copyright (c) 2026 danko1122q
 ; All rights reserved.
 
-; asm Linux 32-bit platform layer (core/linux32 .as)
-; All syscalls use int 0x80 convention.
-; Register mapping: eax=system_call, ebx=arg1, ecx=arg2, edx=arg3.
 O_ACCMODE  = 0003o
 O_RDONLY   = 0000o
 O_WRONLY   = 0001o
@@ -29,24 +26,20 @@ S_IROTH    = 0004o
 S_IWOTH    = 0002o
 S_IXOTH    = 0001o
 
-; ---- Output buffer ---------------------------------------------------------
-TA_OUT_BUF_SIZE = 4000h		; 16 KB
+TA_OUT_BUF_SIZE = 4000h
 
 segment readable writeable
 as_out_buf_pos	u32 ?
 as_out_buf	rb TA_OUT_BUF_SIZE
 segment readable executable
 
-; ---------------------------------------------------------------------------
-; as_init_memory
-; ---------------------------------------------------------------------------
 as_init_memory:
 	mov	eax,esp
 	and	eax,not 0FFFh
 	add	eax,1000h-10000h
 	mov	[as_stack_limit],eax
 	xor	ebx,ebx
-	mov	eax,45			; sys_brk
+	mov	eax,45
 	trap	0x80
 	mov	[as_additional_memory],eax
 	mov	ecx,[as_memory_setting]
@@ -56,9 +49,9 @@ as_init_memory:
       as_allocate_memory:
 	mov	ebx,[as_additional_memory]
 	add	ebx,ecx
-	mov	eax,45			; sys_brk
+	mov	eax,45
 	trap	0x80
-	cmp	eax,[as_additional_memory]	; if brk didn't move, allocation failed
+	cmp	eax,[as_additional_memory]
 	if_equal	as_no_low_memory
 	mov	[as_memory_end],eax
 	sub	eax,[as_additional_memory]
@@ -72,22 +65,14 @@ as_init_memory:
 	jmp	as_fatal_error
 _as_no_low_memory_str u8 'failed to allocate memory within 32-bit addressing range',0
 
-; ---------------------------------------------------------------------------
-; as_exit_program  al = exit code
-; ---------------------------------------------------------------------------
 as_exit_program:
-	push	eax			; save exit code (AL) - as_flush_output clobbers EAX via int 0x80
+	push	eax
 	call	as_flush_output
 	pop	eax
 	movzx	ebx,al
-	mov	eax,1			; sys_exit
+	mov	eax,1
 	trap	0x80
 
-; ---------------------------------------------------------------------------
-; as_get_environment_variable
-;   esi = variable name (null-terminated)
-;   edi = destination buffer
-; ---------------------------------------------------------------------------
 as_get_environment_variable:
 	mov	ecx,esi
 	mov	ebx,[as_environment]
@@ -130,13 +115,10 @@ as_get_environment_variable:
 	dec	edi
 	ret
 
-; ---------------------------------------------------------------------------
-; as_open  edx = path, returns ebx = fd, CF set on error
-; ---------------------------------------------------------------------------
 as_open:
 	push	esi edi ebp
 	call	as_adapt_path
-	mov	eax,5			; sys_open
+	mov	eax,5
 	mov	ebx,as_buffer
 	mov	ecx,O_RDONLY
 	xor	edx,edx
@@ -163,9 +145,6 @@ as_open:
 	if_above	as_out_of_memory
 	ret
 
-; ---------------------------------------------------------------------------
-; as_create  edx = path, returns ebx = fd, CF set on error
-; ---------------------------------------------------------------------------
 as_create:
 	push	esi edi ebp edx
 	call	as_adapt_path
@@ -181,7 +160,7 @@ as_create:
 	if_not_carry	as_do_create
 	or	edx,S_IXUSR+S_IXGRP+S_IXOTH
       as_do_create:
-	mov	eax,5			; sys_open (with O_CREAT)
+	mov	eax,5
 	trap	0x80
 	pop	ebp edi esi
 	test	eax,eax
@@ -190,20 +169,14 @@ as_create:
 	clear_carry
 	ret
 
-; ---------------------------------------------------------------------------
-; as_close  ebx = fd
-; ---------------------------------------------------------------------------
 as_close:
-	mov	eax,6			; sys_close
+	mov	eax,6
 	trap	0x80
 	ret
 
-; ---------------------------------------------------------------------------
-; as_read  ebx=fd  edx=buf  ecx=count, CF set on error
-; ---------------------------------------------------------------------------
 as_read:
 	push	ecx edx esi edi ebp
-	mov	eax,3			; sys_read
+	mov	eax,3
 	xchg	ecx,edx
 	trap	0x80
 	pop	ebp edi esi edx ecx
@@ -217,39 +190,30 @@ as_read:
 	set_carry
 	ret
 
-; ---------------------------------------------------------------------------
-; as_write  ebx=fd  edx=buf  ecx=count, CF set on error
-; ---------------------------------------------------------------------------
 as_write:
-	push	edx esi edi ebp ecx	; save count before xchg clobbers ecx
-	mov	eax,4			; sys_write
-	xchg	ecx,edx			; ecx=buf, edx=count (int 0x80 convention)
+	push	edx esi edi ebp ecx
+	mov	eax,4
+	xchg	ecx,edx
 	trap	0x80
-	pop	ecx			; restore original count
+	pop	ecx
 	pop	ebp edi esi edx
 	test	eax,eax
 	if_sign	as_file_error
-	cmp	eax,ecx			; verify all bytes were written (guard against partial write)
+	cmp	eax,ecx
 	if_not_equal	as_file_error
 	clear_carry
 	ret
 
-; ---------------------------------------------------------------------------
-; as_lseek  ebx=fd  edx=offset  al=whence
-;           returns eax=new position, CF set on error
-; ---------------------------------------------------------------------------
 as_lseek:
 	mov	ecx,edx
 	xor	edx,edx
 	mov	dl,al
-	mov	eax,19			; sys_lseek
+	mov	eax,19
 	trap	0x80
 	cmp	eax,-1
 	if_equal	as_file_error
 	clear_carry
 	ret
-
-; ---- Buffered output -------------------------------------------------------
 
 as_display_string:
 	push	esi edi
@@ -304,7 +268,6 @@ as_display_number:
 	ret
 
 as_buf_putc:
-	; al = as_u8 to buffer; trashes nothing extra beyond al
 	push	edx
 	mov	edx,[as_out_buf_pos]
 	mov	[as_out_buf+edx],al
@@ -321,7 +284,7 @@ as_flush_output:
 	mov	ecx,[as_out_buf_pos]
 	jecxz	as_flush_done
 	push	ebx
-	mov	eax,4			; sys_write
+	mov	eax,4
 	mov	ebx,[as_con_handle]
 	mov	edx,as_out_buf
 	xchg	ecx,edx
@@ -543,7 +506,7 @@ as_assembler_error:
 
 as_make_timestamp:
 	push	ebx
-	mov	eax,13			; sys_time
+	mov	eax,13
 	mov	ebx,as_timestamp
 	trap	0x80
 	mov	eax,as_u32 [as_timestamp]

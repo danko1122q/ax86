@@ -841,9 +841,9 @@ as_get_fp_value:
 	ret
       as_fp_add:
 	cmp	as_u32 [ebx+8],8000h
-	if_equal	.fp_add_done    ; operand is NaN/Inf, skip
+	if_equal	.fp_add_done
 	cmp	as_u32 [edi+8],8000h
-	if_equal	.fp_copy_val    ; other operand NaN/Inf, copy it
+	if_equal	.fp_copy_val
 	mov	eax,[ebx+8]
 	cmp	eax,[edi+8]
 	if_greater_equal	.exp_ok
@@ -859,7 +859,7 @@ as_get_fp_value:
 	add	[edi+12],edx
 	add_with_carry	[edi],eax
 	add_with_carry	[edi+4],ebx
-	if_not_carry	.fp_add_done   ; no overflow, mantissa fits
+	if_not_carry	.fp_add_done
 	mov	eax,[edi]
 	shrd	[edi+12],eax,1
 	mov	eax,[edi+4]
@@ -870,7 +870,6 @@ as_get_fp_value:
 	inc	as_u32 [edi+8]
       .fp_add_done:
 	ret
-      ; copy 16-byte FP value: [ebx] -> [edi]
       .fp_copy_val:
 	mov	eax, [ebx+0]
 	mov	[edi+0], eax
@@ -881,16 +880,15 @@ as_get_fp_value:
 	mov	eax, [ebx+12]
 	mov	[edi+12], eax
 	ret
-      ; align exponent of [ebx] to ecx=target_exp, shifting mantissa right
       .fp_align_exp:
 	push	ecx
 	mov	ecx, eax
-	sub	ecx, [ebx+8]          ; delta = target - current exponent
+	sub	ecx, [ebx+8]
 	mov	edx, [ebx+4]
 	jecxz	.fp_align_done
       .fp_align_loop:
 	mov	ebp, [ebx]
-	shrd	[ebx+12], ebp, 1    ; shift 96-bit mantissa right by 1
+	shrd	[ebx+12], ebp, 1
 	shrd	[ebx+0], edx, 1
 	shr	edx, 1
 	inc	as_u32 [ebx+8]

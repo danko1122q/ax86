@@ -1,5 +1,3 @@
-;ax86 87.s 87
-;./87
 
 format elf executable 3
 

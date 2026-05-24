@@ -2,9 +2,6 @@
 ; Copyright (c) 2026 danko1122q
 ; All rights reserved.
 
-; AX86 — Assembly x86
-; Build (Linux):   ./ax86 ax86.s ax86   && chmod +x ax86
-
 	format	ELF executable 3
 	entry	as_start
 
@@ -18,7 +15,6 @@ as_start:
 	mov	esi,_as_logo
 	call	as_display_string
 
-	; 32-bit Linux argv layout: [esp] = argc, [esp+4] = argv[0], ...
 	mov	[as_command_line],esp
 	mov	ecx,[esp]
 	lea	ebx,[esp+4+ecx*4+4]
@@ -39,8 +35,6 @@ as_start:
 	mov	esi,_as_memory_suffix
 	call	as_display_string
 
-	; timing start
-	; gettimeofday (sys 78) -> buffer: [seconds dd, useconds dd]
 	mov	eax,78
 	mov	ebx,as_buffer
 	xor	ecx,ecx
@@ -384,4 +378,3 @@ as_predefinitions rb 1000h
 as_paths rb 10000h
 as_include_extra rb 4000h
 as_include_extra_ptr u32 ?
-

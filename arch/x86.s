@@ -210,7 +210,7 @@ as_basic_instruction:
       as_get_simm32:
 	call	as_get_qword_value
 	mov	ecx,edx
-	sign_extend_dword
+	extend64
 	cmp	ecx,edx
 	if_equal	as_simm32_range_ok
 	call	as_recoverable_overflow
@@ -785,7 +785,7 @@ as_mov_instruction:
 	if_not_equal	as_mov_reg_imm_64bit_store
 	cmp	[as_value_type],4
 	if_above_equal	as_mov_reg_imm_64bit_store
-	sign_extend_dword
+	extend64
 	cmp	ecx,edx
 	if_equal	as_mov_reg_64bit_imm_32bit
       as_mov_reg_imm_64bit_store:
@@ -1416,10 +1416,6 @@ as_push_instruction:
 	if_equal	as_instruction_assembled
 	or	al,al
 	if_zero	as_instruction_assembled
-;	 mov	 [as_operand_size],0
-;	 mov	 [as_operand_flags],0
-;	 mov	 [as_operand_prefix],0
-;	 mov	 [as_rex_prefix],0
 	and	as_u32 [as_operand_size],0
 	jmp	as_push_next
 as_pop_instruction:
@@ -1517,10 +1513,6 @@ as_pop_instruction:
 	if_equal	as_instruction_assembled
 	or	al,al
 	if_zero	as_instruction_assembled
-;	 mov	 [as_operand_size],0
-;	 mov	 [as_operand_flags],0
-;	 mov	 [as_operand_prefix],0
-;	 mov	 [as_rex_prefix],0
 	and	as_u32 [as_operand_size],0
 	jmp	as_pop_next
       as_pop_sreg:
@@ -2842,7 +2834,7 @@ as_jmp_instruction:
 	inc	edi
       as_jmp_imm_32bit_prefix_ok:
 	call	as_calculate_jump_offset
-	sign_extend_dword
+	extend64
 	call	as_check_for_short_jump
 	if_carry	as_jmp_short
       as_jmp_imm_32bit_store:
@@ -2861,7 +2853,7 @@ as_jmp_instruction:
 	call	as_get_address_qword_value
 	call	as_calculate_jump_offset
 	mov	ecx,edx
-	sign_extend_dword
+	extend64
 	cmp	edx,ecx
 	if_not_equal	as_jump_out_of_range
 	call	as_check_for_short_jump
@@ -2879,8 +2871,8 @@ as_jmp_instruction:
 	inc	edi
       as_jmp_imm_16bit_prefix_ok:
 	call	as_calculate_jump_offset
-	sign_extend_word
-	sign_extend_dword
+	extend32
+	extend64
 	call	as_check_for_short_jump
 	if_carry	as_jmp_short
 	cmp	[as_value_type],0
@@ -3016,7 +3008,7 @@ as_conditional_jump:
 	inc	edi
       as_conditional_jump_32bit_prefix_ok:
 	call	as_calculate_jump_offset
-	sign_extend_dword
+	extend64
 	call	as_check_for_short_jump
 	if_carry	as_conditional_jump_short
       as_conditional_jump_32bit_store:
@@ -3037,7 +3029,7 @@ as_conditional_jump:
 	call	as_get_address_qword_value
 	call	as_calculate_jump_offset
 	mov	ecx,edx
-	sign_extend_dword
+	extend64
 	cmp	edx,ecx
 	if_not_equal	as_jump_out_of_range
 	call	as_check_for_short_jump
@@ -3055,8 +3047,8 @@ as_conditional_jump:
 	inc	edi
       as_conditional_jump_16bit_prefix_ok:
 	call	as_calculate_jump_offset
-	sign_extend_word
-	sign_extend_dword
+	extend32
+	extend64
 	call	as_check_for_short_jump
 	if_carry	as_conditional_jump_short
 	cmp	[as_value_type],0
@@ -3113,7 +3105,7 @@ as_loop_instruction:
       as_loop_jump_32bit_prefix_ok:
 	call	as_loop_counter_size
 	call	as_calculate_jump_offset
-	sign_extend_dword
+	extend64
       as_make_loop_jump:
 	call	as_check_for_short_jump
 	if_carry	as_conditional_jump_short
@@ -3134,7 +3126,7 @@ as_loop_instruction:
 	call	as_loop_counter_size
 	call	as_calculate_jump_offset
 	mov	ecx,edx
-	sign_extend_dword
+	extend64
 	cmp	edx,ecx
 	if_not_equal	as_jump_out_of_range
 	jmp	as_make_loop_jump
@@ -3147,8 +3139,8 @@ as_loop_instruction:
       as_loop_jump_16bit_prefix_ok:
 	call	as_loop_counter_size
 	call	as_calculate_jump_offset
-	sign_extend_word
-	sign_extend_dword
+	extend32
+	extend64
 	jmp	as_make_loop_jump
 
 as_movs_instruction:
@@ -6040,7 +6032,7 @@ as_xbegin_instruction:
 	call	as_calculate_relative_offset
 	sub	edi,5
 	mov	edx,eax
-	sign_extend_word
+	extend32
 	cmp	eax,edx
 	if_not_equal	as_xbegin_rel32
 	mov	al,66h
@@ -6428,7 +6420,7 @@ as_get_address:
 	mov	ebp,[as_addressing_space]
 	call	as_calculate_relative_offset
 	mov	[as_address_high],edx
-	sign_extend_dword
+	extend64
 	cmp	edx,[as_address_high]
 	if_equal	as_address_high_ok
 	call	as_recoverable_overflow

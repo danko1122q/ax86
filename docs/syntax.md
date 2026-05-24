@@ -419,7 +419,7 @@ signed_multiply eax, ecx     ; eax = 42
 
 ; −14 / 3
 mov eax, -14
-sign_extend_dword
+extend64
 mov ecx, 3
 signed_divide ecx            ; eax = -4, edx = -2
 
@@ -453,17 +453,17 @@ bit_scan_reverse ecx, eax    ; ecx = 4
 
 ## 17. Sign Extension
 
-Prepares EAX / EDX for `signed_divide`.
+Prepares registers for `signed_divide`.
 
 | Mnemonic | Widens |
 |----------|--------|
-| `sign_extend_byte` | AL → AX |
-| `sign_extend_word` | AX → EAX |
-| `sign_extend_dword` | EAX → EDX:EAX |
+| `extend16` | AL → AX |
+| `extend32` | AX → EAX |
+| `extend64` | EAX → EDX:EAX |
 
 ```asm
 mov eax, -100
-sign_extend_dword
+extend64
 mov ecx, 7
 signed_divide ecx    ; eax = -14, edx = -2
 ```
@@ -748,7 +748,7 @@ All 28 `cmov` variants are named `move_if_<condition>`. The move happens only wh
 ; branchless abs(eax)
 mov  ebx, eax
 negate eax
-move_if_sign eax, ebx        ; restore if negate overflowed (original was non-negative)
+move_if_sign eax, ebx        ; if original was positive, negate made it negative (SF=1); restore
 
 ; branchless max(eax, ebx) → eax
 cmp  eax, ebx

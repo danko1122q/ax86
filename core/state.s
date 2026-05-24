@@ -17,8 +17,6 @@ as_symbols_file u32 ?
 
 as_passes_limit u16 ?
 
-; Internal core variables:
-
 as_current_pass u16 ?
 
 as_include_paths u32 ?

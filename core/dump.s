@@ -3,14 +3,13 @@
 ; All rights reserved.
 
 as_dump_symbols:
-; AX86 symbol dump header offsets (48-byte / 0x30 header, base at ebx-0x40)
-SYM_HDR_ID_LEN      = -40h+0Ch   ; identifier/source name length
-SYM_HDR_SRC_SIZE    = -40h+14h   ; preprocessed source size
-SYM_HDR_BLK_SIZE    = -40h+20h   ; block size (includes header)
-SYM_HDR_SRC_OFFSET  = -40h+24h   ; offset of source within block
-SYM_HDR_SUBSECT_OFF = -40h+2Ch   ; subsection offset
-SYM_HDR_SUBSECT_SZ  = -40h+30h   ; subsection size
-SYM_HDR_SUBSECT_TOT = -40h+38h   ; subsection total
+SYM_HDR_ID_LEN      = -40h+0Ch
+SYM_HDR_SRC_SIZE    = -40h+14h
+SYM_HDR_BLK_SIZE    = -40h+20h
+SYM_HDR_SRC_OFFSET  = -40h+24h
+SYM_HDR_SUBSECT_OFF = -40h+2Ch
+SYM_HDR_SUBSECT_SZ  = -40h+30h
+SYM_HDR_SUBSECT_TOT = -40h+38h
 
 	mov	edi,[as_code_start]
 	call	as_setup_dump_header
@@ -167,9 +166,9 @@ SYM_HDR_SUBSECT_TOT = -40h+38h   ; subsection total
       as_labels_dump_ok:
 	mov	eax, edi
 	sub	eax, ebx
-	mov	[ebx+SYM_HDR_SRC_SIZE], eax     ; labels section size
+	mov	[ebx+SYM_HDR_SRC_SIZE], eax
 	add	eax, 40h
-	mov	[ebx-40h+18h], eax              ; block start offset
+	mov	[ebx-40h+18h], eax
 	mov	ecx,[as_memory_end]
 	sub	ecx,[as_labels_list]
 	mov	[ebx-40h+1Ch],ecx
@@ -258,12 +257,12 @@ SYM_HDR_SUBSECT_TOT = -40h+38h   ; subsection total
 	stos	as_u32 [edi]
 	mov	ecx,edi
 	sub	ecx,ebx
-	sub	ecx, [ebx+SYM_HDR_SRC_SIZE]      ; compute subsection offset
+	sub	ecx, [ebx+SYM_HDR_SRC_SIZE]
 	mov	[ebx+SYM_HDR_SUBSECT_OFF], ecx
 	add	ecx, [ebx-40h+28h]
-	mov	[ebx+SYM_HDR_SUBSECT_SZ], ecx    ; subsection size
+	mov	[ebx+SYM_HDR_SUBSECT_SZ], ecx
 	add	ecx, [ebx-40h+34h]
-	mov	[ebx+SYM_HDR_SUBSECT_TOT], ecx   ; subsection total
+	mov	[ebx+SYM_HDR_SUBSECT_TOT], ecx
       as_find_inexisting_offsets:
 	sub	edx,1Ch
 	cmp	edx,ebp
@@ -433,12 +432,12 @@ as_dump_preprocessed_source:
 	mov	eax,edi
 	sub	eax,ebx
 	dec	eax
-	mov	[ebx+SYM_HDR_ID_LEN], eax   ; store name length
+	mov	[ebx+SYM_HDR_ID_LEN], eax
 	mov	eax, edi
 	sub	eax, ebx
-	mov	[ebx+SYM_HDR_SRC_SIZE], eax  ; preprocessed source size
+	mov	[ebx+SYM_HDR_SRC_SIZE], eax
 	add	eax, 40h
-	mov	[ebx+SYM_HDR_BLK_SIZE], eax  ; total block size
+	mov	[ebx+SYM_HDR_BLK_SIZE], eax
 	call	as_prepare_preprocessed_source
 	sub	esi,[as_memory_start]
 	mov	[ebx-40h+24h],esi

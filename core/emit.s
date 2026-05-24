@@ -153,17 +153,15 @@ as_create_addressing_space:
         if_below_equal  as_out_of_memory
         mov     [as_tagged_blocks],ebx
         mov     [as_addressing_space],ebx
-        ; initialize addressing-space block: base pointers, zero all fields
         xor     eax, eax
-        ; [+00] and [+18h] hold the free-pointer (edi); all others start zero
-        mov     [ebx+00h], edi          ; as_space.code_start
-        mov     [ebx+04h], eax          ; as_space.code_flags
-        mov     [ebx+08h], eax          ; as_space.org_origin
-        mov     [ebx+10h], eax          ; as_space.virtual_start
-        mov     [ebx+14h], eax          ; as_space.virtual_size
-        mov     [ebx+18h], edi          ; as_space.output_ptr
-        mov     [ebx+1Ch], eax          ; as_space.section_index
-        mov     [ebx+20h], eax          ; as_space.reloc_count
+        mov     [ebx+00h], edi
+        mov     [ebx+04h], eax
+        mov     [ebx+08h], eax
+        mov     [ebx+10h], eax
+        mov     [ebx+14h], eax
+        mov     [ebx+18h], edi
+        mov     [ebx+1Ch], eax
+        mov     [ebx+20h], eax
         ret
 
 as_assemble_line:
@@ -274,24 +272,19 @@ as_assemble_line:
         mov     edx,[ds:ebp+14h]
         mov     ebp,[ds:ebp+10h]
       as_finish_label_symbol:
-        ; update sign flag, size, type, address — track if any field changed
-        ; inline: sign_update [ebx+9], [as_address_sign], 10b
         mov     al,[as_address_sign]
         xor     al,[ebx+9]
         and     al,10b
         or      ah,al
         xor     [ebx+9],al
-        ; inline: update_field [ebx+10], cl, al
         cmp     cl,[ebx+10]
         mov     [ebx+10],cl
         setne   al
         or      ah,al
-        ; inline: update_field [ebx+11], ch, al
         cmp     ch,[ebx+11]
         mov     [ebx+11],ch
         setne   al
         or      ah,al
-        ; inline: update_field [ebx+12], ebp, al
         cmp     ebp,[ebx+12]
         mov     [ebx+12],ebp
         setne   al
@@ -354,26 +347,20 @@ as_assemble_line:
         mov     [ebx+4],edx
         setne   al
         or      ah,al
-        ; update sign flag, size, type — track if any field changed
-        ; inline: sign_update [ebx+9], [as_value_sign], 10b
         mov     al,[as_value_sign]
         xor     al,[ebx+9]
         and     al,10b
         or      ah,al
         xor     [ebx+9],al
-        ; inline: update_field [ebx+10], cl, al
         cmp     cl,[ebx+10]
         mov     [ebx+10],cl
         setne   al
         or      ah,al
-        ; inline: update_field [ebx+11], ch, al
         cmp     ch,[ebx+11]
         mov     [ebx+11],ch
         setne   al
         or      ah,al
-        ; constant has no address component — zero the field
         xor     edx,edx
-        ; inline: update_field [ebx+12], edx, al
         cmp     edx,[ebx+12]
         mov     [ebx+12],edx
         setne   al
@@ -446,15 +433,7 @@ as_assemble_line:
         or      as_u8 [ebx+0Ah],2
         jmp     as_continue_line
       as_assemble_instruction:
-;        mov     [as_operand_size],0
-;        mov     [as_operand_flags],0
-;        mov     [as_operand_prefix],0
-;        mov     [as_rex_prefix],0
         and     as_u32 [as_operand_size],0
-;        mov     [as_opcode_prefix],0
-;        mov     [as_vex_required],0
-;        mov     [as_vex_register],0
-;        mov     [as_immediate_size],0
         and     as_u32 [as_opcode_prefix],0
         call    as_instruction_handler
       as_instruction_handler:
@@ -1796,15 +1775,11 @@ as_data_twords:
       as_get_tword:
         cmp     as_u8 [esi],'.'
         if_equal        as_fp_tword_literal
-        ; not a float literal — save esi so we can restore if needed
         push    esi
         call    as_get_qword_value
-        ; eax = lo32, edx = hi32
         cmp     as_u8 [esi],':'
         if_equal        as_tword_restore_complex
-        ; plain integer — convert to x87 80-bit extended precision
-        pop     ecx                     ; discard saved esi
-        ; handle zero specially
+        pop     ecx
         or      eax,eax
         if_not_zero     as_integer_tword_nonzero
         or      edx,edx
@@ -1816,32 +1791,25 @@ as_data_twords:
         stos    as_u16 [edi]
         ret
       as_integer_tword_nonzero:
-        ; find MSB: check high dword first
         push    edx
         push    eax
         bit_scan_reverse        ecx,edx
         if_not_zero     as_tword_msb_in_hi
         bit_scan_reverse        ecx,eax
-        ; MSB in lo dword: ecx = bit pos (0-31), total = ecx
         jmp     as_tword_have_msb
       as_tword_msb_in_hi:
-        add     ecx,32                  ; total MSB position (32-63)
+        add     ecx,32
       as_tword_have_msb:
-        ; ecx = MSB position (0-63)
-        ; shift amount to normalize = 63 - ecx
         mov     ebx,63
         sub     ebx,ecx
-        ; restore eax(lo), edx(hi)
         pop     eax
         pop     edx
-        ; shift edx:eax left by ebx bits
-        push    ecx                     ; save MSB pos for exponent
+        push    ecx
         mov     ecx,ebx
         or      ecx,ecx
         if_zero as_tword_no_shift
         cmp     ecx,32
         if_below        as_tword_small_shift
-        ; shift >= 32
         sub     ecx,32
         mov     edx,eax
         xor     eax,eax
@@ -1851,12 +1819,10 @@ as_data_twords:
         shld    edx,eax,cl
         shl     eax,cl
       as_tword_no_shift:
-        ; store normalized mantissa: lo32 then hi32
         stos    as_u32 [edi]
         mov     eax,edx
         stos    as_u32 [edi]
-        pop     ecx                     ; restore MSB pos
-        ; biased exponent = 16383 + MSB_pos, sign bit = 0
+        pop     ecx
         mov     ax,3FFFh
         add     ax,cx
         stos    as_u16 [edi]
@@ -2315,10 +2281,6 @@ as_assert_directive:
         mov     [as_error],as_assertion_failed
         jmp     as_instruction_assembled
 
-; ---------------------------------------------------------------
-; u8/u16/u32/u64/u80 - alias handlers (delegate ke existing)
-; ---------------------------------------------------------------
-
 as_data_u8:
         jmp     as_data_bytes
 as_data_u16:
@@ -2330,13 +2292,6 @@ as_data_u64:
 as_data_u80:
         jmp     as_data_twords
 
-; ---------------------------------------------------------------
-; u128 - define 16-as_u8 (oword) integer data
-; Sintaks: u128 expr [, expr ...]
-; Tiap expr adalah nilai 64-bit, disimpan sebagai dua as_u64 (lo, hi=0)
-; Untuk full 128-bit: u128 lo_val, hi_val  (dua item terpisah)
-; ---------------------------------------------------------------
-
 as_data_owords:
         call    as_define_data
         if_carry        as_instruction_assembled
@@ -2346,7 +2301,6 @@ as_data_owords:
         if_equal        as_get_oword
         cmp     al,'?'
         if_not_equal    as_invalid_argument
-        ; undefined: 16 bytes kosong
         mov     eax,edi
         and     as_u32 [edi],0
         scas    as_u32 [edi]
@@ -2362,17 +2316,13 @@ as_data_owords:
         if_equal        as_invalid_value
         call    as_get_qword_value
         call    as_mark_relocation
-        stos    as_u32 [edi]            ; lo as_u32
+        stos    as_u32 [edi]
         mov     eax,edx
-        stos    as_u32 [edi]            ; hi as_u32 of 64-bit value
+        stos    as_u32 [edi]
         xor     eax,eax
-        stos    as_u32 [edi]            ; upper 64 bits = 0
+        stos    as_u32 [edi]
         stos    as_u32 [edi]
         ret
-
-; ---------------------------------------------------------------
-; u256 - define 32-as_u8 (yword) integer data
-; ---------------------------------------------------------------
 
 as_data_ywords:
         call    as_define_data
@@ -2418,10 +2368,6 @@ as_data_ywords:
         stos    as_u32 [edi]
         ret
 
-; ---------------------------------------------------------------
-; u512 - define 64-as_u8 (zword) integer data
-; ---------------------------------------------------------------
-
 as_data_zwords:
         call    as_define_data
         if_carry        as_instruction_assembled
@@ -2452,10 +2398,6 @@ as_data_zwords:
         loop    as_zword_zero_loop
         ret
 
-; ---------------------------------------------------------------
-; Reserve handlers untuk u128/u256/u512
-; ---------------------------------------------------------------
-
 as_reserve_owords:
         lods    as_u8 [esi]
         cmp     al,'('
@@ -2463,7 +2405,6 @@ as_reserve_owords:
         cmp     as_u8 [esi],'.'
         if_equal        as_invalid_value
         call    as_get_count_value
-        ; ecx = count * 16 bytes
         mov     ecx,eax
         shl     ecx,4
         if_carry        as_out_of_memory

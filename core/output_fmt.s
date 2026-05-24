@@ -3,27 +3,25 @@
 ; All rights reserved.
 
 as_formatter:
-; ELF32 section header field offsets (Elf32_Shdr, 40 bytes)
-SHF_NAME      = 00h   ; sh_name      (u32)
-SHF_TYPE      = 04h   ; sh_type      (u32)
-SHF_FLAGS     = 08h   ; sh_flags     (u32)
-SHF_ADDR      = 0Ch   ; sh_addr      (u32)
-SHF_OFFSET    = 10h   ; sh_offset    (u32)
-SHF_SIZE      = 14h   ; sh_size      (u32)
-SHF_LINK      = 18h   ; sh_link      (u32)
-SHF_INFO      = 1Ch   ; sh_info      (u32)
-SHF_ALIGN     = 20h   ; sh_addralign (u32)
-SHF_ENTSIZE   = 24h   ; sh_entsize   (u32)
+SHF_NAME      = 00h
+SHF_TYPE      = 04h
+SHF_FLAGS     = 08h
+SHF_ADDR      = 0Ch
+SHF_OFFSET    = 10h
+SHF_SIZE      = 14h
+SHF_LINK      = 18h
+SHF_INFO      = 1Ch
+SHF_ALIGN     = 20h
+SHF_ENTSIZE   = 24h
 
-; ELF32 program header field offsets (Elf32_Phdr, 32 bytes)
-PHF_TYPE      = 00h   ; p_type
-PHF_OFFSET    = 04h   ; p_offset
-PHF_VADDR     = 08h   ; p_vaddr
-PHF_PADDR     = 0Ch   ; p_paddr
-PHF_FILESZ    = 10h   ; p_filesz
-PHF_MEMSZ     = 14h   ; p_memsz
-PHF_FLAGS     = 18h   ; p_flags
-PHF_ALIGN     = 1Ch   ; p_align
+PHF_TYPE      = 00h
+PHF_OFFSET    = 04h
+PHF_VADDR     = 08h
+PHF_PADDR     = 0Ch
+PHF_FILESZ    = 10h
+PHF_MEMSZ     = 14h
+PHF_FLAGS     = 18h
+PHF_ALIGN     = 1Ch
 
 	mov	[as_current_offset],edi
 	cmp	[as_output_file],0
@@ -208,10 +206,8 @@ as_format_directive:
 	mov	[as_output_format],al
 	and	edx,0Fh
 	or	[as_format_flags],edx
-	; AX86: reject all 64-bit formats (flag bit 3)
 	cmp	al,2
 	if_equal	as_illegal_instruction
-	; AX86: handle 'format com' (type=1, flags=1) as flat binary + org 100h
 	cmp	al,1
 	if_equal	as_arc_check_com
       as_select_format_cont:
@@ -220,7 +216,6 @@ as_format_directive:
 	cmp	al,5
 	if_equal	as_format_elf
       as_format_defined:
-	; AX86: if COM format flag is set, set org 100h
 	test	[as_format_flags],20h
 	if_not_zero	as_arc_com_setup
       as_format_defined_cont:
@@ -234,24 +229,19 @@ as_format_directive:
 	lea	esi,[esi+eax+1]
 	jmp	as_instruction_assembled
       as_arc_check_com:
-	; type=1: 'format binary' (flag=0) -> flat binary (output_format=0)
-	;         'format com'    (flag=1) -> COM binary with org 100h
 	bit_test	[as_format_flags],0
 	if_not_carry	as_arc_binary_format
-	; 'format com' - treat as flat binary + org 100h
 	and	[as_format_flags],0FFFFFFFEh
-	or	[as_format_flags],20h		; use flag bit 5 to remember COM
+	or	[as_format_flags],20h
 	jmp	as_select_format_cont
       as_arc_binary_format:
-	; 'format binary' - plain flat binary, reset output_format to 0
 	and	[as_format_flags],0FFFFFFFEh
 	mov	[as_output_format],0
 	jmp	as_format_defined
       as_arc_com_setup:
-	; COM format: set up org 100h by adjusting the addressing space virtual base
-	and	[as_format_flags],0FFFFFFDFh	; clear COM flag
+	and	[as_format_flags],0FFFFFFDFh
 	mov	ebx,[as_addressing_space]
-	sub	as_u32 [ebx],100h		; adjust virtual address base by -100h
+	sub	as_u32 [ebx],100h
 	jmp	as_format_defined_cont
       as_format_prefix:
 	lods	as_u8 [esi]
@@ -419,7 +409,6 @@ as_close_pass:
 	if_equal	as_close_elf
 	ret
 
-
 as_recoverable_invalid_address:
 	cmp	[as_error_line],0
 	if_not_equal	as_ignore_invalid_address
@@ -569,12 +558,12 @@ as_recoverable_invalid_address:
 	rep	movs as_u8 [edi],[esi]
 	clear_direction
 	pop	ecx
-	inc	esi                    ; advance to next section name entry
-	inc	ecx                    ; bump section count
-	mov	[esi], ecx             ; store updated section index
+	inc	esi
+	inc	ecx
+	mov	[esi], ecx
 	xor	eax, eax
-	mov	[esi+4], eax           ; clear section offset (filled later)
-	mov	[esi+8], ax            ; clear section flags
+	mov	[esi+4], eax
+	mov	[esi+8], ax
 	pop	edi esi
 	jmp	as_section_relocations_ok
       as_section_relocations_count_16bit:
@@ -912,10 +901,10 @@ as_mark_elf_relocation:
 	cmp	[as_value_type],5
 	if_equal	as_elf_gotoff_relocation
 	if_above	as_invalid_use_of_symbol
-	mov	al,1			; R_386_32
+	mov	al,1
 	jmp	as_store_relocation
       as_elf_gotoff_relocation:
-	mov	al,9			; R_386_GOTOFF
+	mov	al,9
 	jmp	as_store_relocation
       as_elf_relocation_relative:
 	cmp	as_u8 [ebx+9],0
@@ -925,10 +914,10 @@ as_mark_elf_relocation:
 	sub	ebx,edi
 	sub	eax,ebx
 	push	eax
-	mov	al,2			; R_386_PC32 / R_AMD64_PC32
+	mov	al,2
 	cmp	[as_value_type],3
 	if_equal	as_store_relocation
-	mov	al,4			; R_386_PLT32 / R_AMD64_PLT32
+	mov	al,4
 	jmp	as_store_relocation
 as_close_elf:
 	bit_test	[as_format_flags],0
@@ -999,9 +988,9 @@ as_elf_formatter:
 	call	as_store_section_index
 	jmp	as_section_symbol_ok
       as_store_section_index:
-	inc	ecx                    ; next string table index
+	inc	ecx
 	mov	eax, ecx
-	shl	eax, 8                ; pack index into high byte
+	shl	eax, 8
 	mov	[ebx],eax
 	inc	dx
 	if_zero	as_format_limitations_exceeded
@@ -1098,9 +1087,9 @@ as_elf_formatter:
 	stos	as_u32 [edi]
 	jmp	as_public_symbol_ok
       as_public_symbol_ok:
-	inc	ecx                    ; next string table index
+	inc	ecx
 	mov	eax, ecx
-	shl	eax, 8                ; pack index into high byte
+	shl	eax, 8
 	mov	al,0C0h
 	mov	[esi],eax
 	add	esi,10h
@@ -1117,9 +1106,9 @@ as_elf_formatter:
 	jmp	as_extrn_symbol_ok
 
       as_extrn_symbol_ok:
-	inc	ecx                    ; next string table index
+	inc	ecx
 	mov	eax, ecx
-	shl	eax, 8                ; pack index into high byte
+	shl	eax, 8
 	mov	al,80h
 	mov	[esi],eax
 	add	esi,0Ch
@@ -1370,16 +1359,6 @@ as_elf_formatter:
 	call	as_write
 	if_carry	as_write_failed
 	jmp	as_output_written
-
-; ─────────────────────────────────────────────────────────────────────────────
-;
-; Memory layout written after code:
-;   [coff_hdr  20 bytes]  ← edi at entry (written last via ebp)
-;   section headers  N × 40 bytes
-;   relocation tables
-;   symbol table
-;   string table
-; ─────────────────────────────────────────────────────────────────────────────
 
 as_format_elf_exe:
 	add	esi,2

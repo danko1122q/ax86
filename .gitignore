@@ -1,0 +1,38 @@
+# AX86 assembler — build output
+ax
+ax86
+# Assembled output files
+*.o
+*.obj
+*.bin
+*.com
+*.elf
+*.exe
+*.out
+a.out
+
+# ELF executables (no extension, common in Linux asm projects)
+# Tracked by pattern: ignore files with no extension that are executable
+# (add specific names below as needed)
+
+# Debug / symbol dumps
+*.sym
+*.lst
+*.map
+*.dbg
+
+# Temporary / editor files
+*~
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VS Code / editor dirs
+.vscode/
+.idea/
